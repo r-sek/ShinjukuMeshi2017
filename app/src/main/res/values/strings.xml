@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">ShinjukuMeshi</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="item_title">近くのお店</string>
+    <string name="visit">行く</string>
+
+    <string name="action_settings">Settings</string>
+</resources>
