@@ -1,0 +1,33 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="info.redspirit.shinjukumeshi.TopFragment"
+    android:id="@+id/top">
+
+    <!-- TODO: Update blank fragment layout -->
+
+
+        <TextView
+            android:text="TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/uuidTxt" />
+
+        <TextView
+            android:text="TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/uuidTxt"
+            android:layout_alignParentStart="true"
+            android:id="@+id/majorTxt" />
+
+        <TextView
+            android:text="TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/majorTxt"
+            android:layout_alignParentStart="true"
+            android:id="@+id/minorTxt" />
+
+</RelativeLayout>

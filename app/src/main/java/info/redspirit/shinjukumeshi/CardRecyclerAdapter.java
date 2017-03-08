@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 public class CardRecyclerAdapter extends RecyclerView.Adapter<CardRecyclerAdapter.ViewHolder> {
     private String[] list;
-    private Integer[] idList;
+    private String[] walkList;
     private Context context;
 
     //アクティビティ取得
@@ -26,10 +26,10 @@ public class CardRecyclerAdapter extends RecyclerView.Adapter<CardRecyclerAdapte
     private LayoutInflater mLayoutInflater;
     private View v;
 
-    public CardRecyclerAdapter(Context context, String[] stringArray, Integer[] idArray) {
+    public CardRecyclerAdapter(Context context, String[] stringArray, String[] walkArray) {
         super();
         this.list = stringArray;
-        this.idList = idArray;
+        this.walkList = walkArray;
         this.context = context;
     }
 
@@ -49,19 +49,19 @@ public class CardRecyclerAdapter extends RecyclerView.Adapter<CardRecyclerAdapte
     public void onBindViewHolder(ViewHolder vh, final int position) {
         vh.textView_main.setText(list[position]);
         vh.imageView.setImageResource(R.mipmap.ic_app_icon);
-        vh.textView_sub.setText("ID: " + String.valueOf(idList[position]));
+        vh.textView_sub.setText(walkList[position]);
         vh.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context, String.valueOf(idList[position]) + ":" + list[position], Toast.LENGTH_SHORT).show();
-                infoView(idList[position]);
+                Toast.makeText(context, String.valueOf(walkList[position]) + ":" + list[position], Toast.LENGTH_SHORT).show();
+                infoView(list[position]);
             }
         });
     }
 
-    protected void infoView(int id) {
+    protected void infoView(String name) {
         Intent intent = new Intent(context, InfoActivity.class);
-        intent.putExtra("id", id);
+        intent.putExtra("name", name);
         context.startActivity(intent);
     }
 

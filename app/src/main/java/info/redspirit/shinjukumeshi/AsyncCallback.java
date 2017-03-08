@@ -1,6 +1,9 @@
 package info.redspirit.shinjukumeshi;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Created by rj on 2017/02/15.
@@ -8,7 +11,7 @@ import org.json.JSONArray;
 
 public interface AsyncCallback {
     void onPreExecute();
-    void onPostExecute(JSONArray ja);
+    void onPostExecute(JsonNode nodeList);
     void onProgressUpdate(int progress);
     void onCancelled();
 }

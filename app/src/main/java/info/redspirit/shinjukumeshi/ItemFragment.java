@@ -22,7 +22,9 @@ import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import com.fasterxml.jackson.databind.*;
 
+import java.util.Iterator;
 import java.util.Locale;
 
 import static android.content.Context.LOCATION_SERVICE;
@@ -149,7 +151,7 @@ public class ItemFragment extends Fragment implements LocationListener {
         // 利用可能なロケーションプロバイダによる位置情報の取得の開始
         // FIXME 本来であれば、リスナが複数回登録されないようにチェックする必要がある
 
-        locationManager.requestLocationUpdates(locationProvider, minTime, minDistance, (LocationListener) this);
+        locationManager.requestLocationUpdates(locationProvider, minTime, minDistance, this);
         // 最新の位置情報
         Location location = locationManager.getLastKnownLocation(locationProvider);
 
@@ -159,6 +161,32 @@ public class ItemFragment extends Fragment implements LocationListener {
             e.printStackTrace();
         }
 
+        // アクセスキー
+        String acckey = "9888fa439f5f71db7d78db34c2acab78";
+        // 緯度
+        String lat = global.latitude;
+        // 経度
+        String lon =  global.longitude;
+        // 範囲
+        String range = "1";
+        // 返却形式
+        String format = "json";
+        // エンドポイント
+        String gnaviRestUri = "https://api.gnavi.co.jp/RestSearchAPI/20150630/";
+        String prmKeyid = "?keyid=" + acckey;
+        String prmFormat = "&format=" + format;
+        String prmLat = "&latitude=" + lat;
+        String prmLon = "&longitude=" + lon;
+        String prmRange = "&range=" + range;
+
+        // URI組み立て
+        StringBuffer uri = new StringBuffer();
+        uri.append(gnaviRestUri);
+        uri.append(prmKeyid);
+        uri.append(prmFormat);
+        uri.append(prmLat);
+        uri.append(prmLon);
+        uri.append(prmRange);
 
         HttpResponsAsync hra = new HttpResponsAsync(new AsyncCallback() {
             @Override
@@ -176,23 +204,55 @@ public class ItemFragment extends Fragment implements LocationListener {
             }
 
             @Override
-            public void onPostExecute(JSONArray ja) {
+            public void onPostExecute(JsonNode nodeList) {
 
-                try {
-                    for (int i = 0; i < ja.length(); i++) {
-                        JSONObject eventObj = ja.getJSONObject(i);
-                        String id = eventObj.getString("spot_id");
-                        String name = eventObj.getString("spot_name");
-                        global.idArray.add(Integer.parseInt(id));
+                if(nodeList != null){
+                    //トータルヒット件数
+                    Log.i("hitcount",nodeList.path("total_hit_count").asText());
+                    //restのみ取得
+                    JsonNode restList = nodeList.path("rest");
+                    Iterator<JsonNode> rest = restList.iterator();
+                    //店舗番号、店舗名、最寄の路線、最寄の駅、最寄駅から店までの時間、店舗の小業態を出力
+                    while(rest.hasNext()){
+                        JsonNode r = rest.next();
+                        String id = r.path("id").asText();
+                        String name = r.path("name").asText();
+                        String line = r.path("access").path("line").asText();
+                        String imageUrl = r.path("image_url").path("shop_image1").asText();
+                        String station = r.path("access").path("station").asText();
+                        String walk    = r.path("access").path("walk").asText() + "分";
+                        String categorys = "";
+
+                        global.idArray.add(id);
                         global.nameArray.add(name);
+                        global.lineArray.add(line);
+                        global.imageUrlArray.add(imageUrl);
+                        global.stationArray.add(station);
+                        global.walkArray.add(walk);
+                        global.categoryArray.add(categorys);
+
+                        for(JsonNode n : r.path("code").path("category_name_s")){
+                            categorys += n.asText();
+                        }
+                        Log.i("Node",id + "¥t" + name + "¥t" + line + "¥t" + station + "¥t" + walk + "¥t" + categorys + "¥t" +imageUrl);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
+
+//                try {
+//                    for (int i = 0; i < ja.length(); i++) {
+//                        JSONObject eventObj = ja.getJSONObject(i);
+//                        String id = eventObj.getString("spot_id");
+//                        String name = eventObj.getString("spot_name");
+//                        global.idArray.add(Integer.parseInt(id));
+//                        global.nameArray.add(name);
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
 
                 Log.i("ArraySize", String.valueOf(global.nameArray.size()));
                 if (global.nameArray.size() != 0) {
-                    crv.setRecyclerAdapterB(getContext(), global.nameArray, global.idArray);
+                    crv.setRecyclerAdapterB(getContext(), global.nameArray, global.walkArray);
                 } else {
 //                    crv.setRecyclerAdapterB(getContext(),global.testArray);
                 }
@@ -213,19 +273,41 @@ public class ItemFragment extends Fragment implements LocationListener {
 
             }
         });
-        hra.execute();
+        hra.execute(uri.toString());
 
-        if (global.nameArray.size() != 0)
-
-        {
-            crv.setRecyclerAdapterB(getContext(), global.nameArray, global.idArray);
-        } else
-
-        {
-//                    crv.setRecyclerAdapterB(getContext(),global.testArray);
-        }
+//        if (global.nameArray.size() != 0) {
+//            crv.setRecyclerAdapterB(getContext(), global.nameArray, global.idArray);
+//        }
 
         super.onStart();
+    }
+
+    //位置情報が通知されるたびにコールバックされるメソッド
+    @Override
+    public void onLocationChanged(Location location) {
+        nowLat = location.getLatitude();
+        nowLng = location.getLongitude();
+        Log.i("Location", String.valueOf(nowLat) + ":" + String.valueOf(nowLng));
+        global.latitude = String.valueOf(nowLat);
+        global.longitude = String.valueOf(nowLng);
+    }
+
+    //ロケーションプロバイダが利用不可能になるとコールバックされるメソッド
+    @Override
+    public void onProviderDisabled(String provider) {
+        //ロケーションプロバイダーが使われなくなったらリムーブする必要がある
+    }
+
+    //ロケーションプロバイダが利用可能になるとコールバックされるメソッド
+    @Override
+    public void onProviderEnabled(String provider) {
+        //プロバイダが利用可能になったら呼ばれる
+    }
+
+    //ロケーションステータスが変わるとコールバックされるメソッド
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        // 利用可能なプロバイダの利用状態が変化したときに呼ばれる
     }
 
     @Override
@@ -255,32 +337,6 @@ public class ItemFragment extends Fragment implements LocationListener {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    //位置情報が通知されるたびにコールバックされるメソッド
-    @Override
-    public void onLocationChanged(Location location) {
-        nowLat = location.getLatitude();
-        nowLng = location.getLongitude();
-        Log.d("GPS", String.valueOf(nowLat) + ":" + String.valueOf(nowLng));
-    }
-
-    //ロケーションプロバイダが利用不可能になるとコールバックされるメソッド
-    @Override
-    public void onProviderDisabled(String provider) {
-        //ロケーションプロバイダーが使われなくなったらリムーブする必要がある
-    }
-
-    //ロケーションプロバイダが利用可能になるとコールバックされるメソッド
-    @Override
-    public void onProviderEnabled(String provider) {
-        //プロバイダが利用可能になったら呼ばれる
-    }
-
-    //ロケーションステータスが変わるとコールバックされるメソッド
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-        // 利用可能なプロバイダの利用状態が変化したときに呼ばれる
     }
 
     /**

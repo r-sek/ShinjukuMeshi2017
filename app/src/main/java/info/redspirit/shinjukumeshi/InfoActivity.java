@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -22,11 +24,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.util.Locale;
 
 
@@ -51,6 +56,7 @@ public class InfoActivity extends AppCompatActivity implements LocationListener 
     private String name;
     private String info;
     private ProgressDialog waitDialog;
+    Global global;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,75 +72,29 @@ public class InfoActivity extends AppCompatActivity implements LocationListener 
         placeNameTxt = (TextView) findViewById(R.id.placeNameTxt);
         infoTxt = (TextView) findViewById(R.id.infoTxt);
 
+        global = (Global)this.getApplication();
+
         Intent intent = getIntent();
-        int getId = intent.getIntExtra("id", 1);
+        String getName = intent.getStringExtra("name");
 
-        Locale locale = Locale.getDefault();
-        String language = locale.getLanguage();
-        String url;
-
-        if(language.equals("ja")){
-            url = "http://sample-env-2.3p4ikwvwvd.us-west-2.elasticbeanstalk.com/ja/infoprocess.php?id=" + getId;
-        }else{
-            url = "http://sample-env-2.3p4ikwvwvd.us-west-2.elasticbeanstalk.com/en/infoprocess.php?id=" + getId;
+        int idx = global.nameArray.indexOf(getName);
+        if(idx==-1){
+            Toast.makeText(this,"データ取得エラー",Toast.LENGTH_LONG).show();
+            finish();
         }
-
-
-        HttpResponsAsync hra = new HttpResponsAsync(new AsyncCallback() {
-            @Override
-            public void onPreExecute() {
-                // プログレスダイアログの設定
-                waitDialog = new ProgressDialog(InfoActivity.this);
-                // プログレスダイアログのメッセージを設定します
-                waitDialog.setMessage("NOW LOADING...");
-                // 円スタイル（くるくる回るタイプ）に設定します
-                waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                waitDialog.setIndeterminate(true);
-                // プログレスダイアログを表示
-                waitDialog.show();
-            }
-
-            @Override
-            public void onPostExecute(JSONArray ja) {
-                try {
-                    for (int i = 0; i < ja.length(); i++) {
-                        JSONObject eventObj = ja.getJSONObject(i);
-                        id = eventObj.getString("spot_id");
-                        latitude = eventObj.getString("latitude");
-                        longitude = eventObj.getString("longitude");
-                        imageUrl = eventObj.getString("image_url");
-                        name = eventObj.getString("spot_name");
-                        info = eventObj.getString("spot_info");
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                if (imageUrl.equals("sample")) {
-
-                } else {
-
-                }
-                placeNameTxt.setText(name);
-                infoTxt.setText(info);
-
-                if (waitDialog.isShowing()) {
-                    waitDialog.dismiss();
-                }
-
-            }
-
-            @Override
-            public void onProgressUpdate(int progress) {
-
-            }
-
-            @Override
-            public void onCancelled() {
-
-            }
-        });
-        hra.execute(url);
+        URL url;
+        InputStream istream;
+        try {
+            url = new URL(global.imageUrlArray.get(idx));
+            istream = url.openStream();
+            Bitmap bmp = BitmapFactory.decodeStream(istream);
+            iv.setImageBitmap(bmp);
+            istream.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        placeNameTxt.setText(global.nameArray.get(idx));
+        infoTxt.setText(global.categoryArray.get(idx)+"\n"+global.lineArray.get(idx)+"\n"+global.stationArray.get(idx)+"\n"+global.walkArray.get(idx));
 
         bt = (Button) findViewById(R.id.visitBtn);
         //ボタン

@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by rj on 2017/01/20.
@@ -19,7 +20,7 @@ public class CardRecyclerView extends RecyclerView {
     Global global;
     ArrayList<String> array;
     private String[] list;
-    private Integer[] iList;
+    private String[] wList;
 
 
     public CardRecyclerView(Context context, AttributeSet attrs) {
@@ -32,9 +33,9 @@ public class CardRecyclerView extends RecyclerView {
 //        setAdapter(new CardRecyclerAdapter(context, list));
 //    }
 
-    public void setRecyclerAdapterB(Context context, ArrayList<String> list, ArrayList<Integer> iList) {
+    public void setRecyclerAdapterB(Context context, List<String> list, List<String> wList) {
         setLayoutManager(new LinearLayoutManager(context));
-        setAdapter(new CardRecyclerAdapter(context, list.toArray(new String[list.size()]), iList.toArray(new Integer[iList.size()])));
+        setAdapter(new CardRecyclerAdapter(context, list.toArray(new String[list.size()]), wList.toArray(new String[wList.size()])));
     }
 
     //listセット
